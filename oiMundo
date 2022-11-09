@@ -1,0 +1,10 @@
+# Trabalho Agenda - Banco de Dados
+.data
+#area para dados na memória principal
+msg: .asciiz "Olá mundo"      #mensagem a ser exibida pro usuário
+
+.text 
+#area para instruções do programa
+li $v0, 4 #instrução para impressão de String
+la $a0, msg   #indica o endereço em que está a mensagem
+syscall #executa
