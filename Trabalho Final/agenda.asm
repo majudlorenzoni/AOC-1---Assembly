@@ -183,34 +183,58 @@ j opMenu
 
 # ---------- DDD - BUSCA DOADORES ----------
 busqueDDD:
-move $t1, $zero                  # valor a ser colocado no vetor
+
 li $v0, 4
 la $a0, stringDigiteDDD
 syscall
 
 li $v0, 5
-syscall                        # le o tipo sanguineo passado pelo usuario
+syscall                        # le o DDD passado pelo usuario
 
 move $s5, $v0                  # passa o valor de v0 para t1
 
-# COMPARACAO
+jal comparacaoDDD
+
+# ------ COMPARACAO DDD - BUSCA DOADORES --------------
 comparacaoDDD:
 beq $s5, $s2 achouDDD
 addi $s2, $s2, 4      # "anda" com o vetor no indice do array
 
-beq $s2, 0x16($s2), 
-# sair do loop quando s2 sair do loop
+# VER COMO PERCORRER O SEGUNDO LOOP ATÉ O FIM 
+# CASO CHEGUE ATÉ O FIM, DIZER QUE NÃO ACHOU O DDD
+
 j comparacaoDDD
 
-
+# --------- ACHOU DDD ---------------
 achouDDD:
-
-
-busqueTipoSanquineo:
-move $t1, $zero                  # valor a ser colocado no vetor
 li $v0, 4
-la $a0, stringDigiteDDD
+la $a0, encontrouDoadoresDDD
+
+# Necessita mostrar as pessoas que tem o mesmo DDD que ela 
+
+# --------- NAO ACHOU DDD ------------
+naoAchouDDD:
+li $v0, 4
+la $a0, vazioDoadoresDDD
+
+j opMenu
+
+# ---------- TIPO SANGUINEO - BUSCA DOADORES ----------
+busqueTipoSanquineo:
+li $v0, 4
+la $a0, stringDigiteTipoSanguineo
 syscall
+li $v0, 5
+syscall                        # le o tipo sanguineo passado pelo usuario
 
- 
+move $s6, $v0                 # passa o valor de v0 para $s6
+jal comparacaoTipoSanguineo
 
+# ------ COMPARACAO TIPO SANGUINEO - BUSCA DOADORES --------------
+comparacaoTipoSanguino:
+beq $s6, $s4, achouTipoSanguineo
+addi $s2, $s2, 4      # "anda" com o vetor no indice do array
+
+j comparacaoTipoSanguino
+# VER COMO PERCORRER O SEGUNDO LOOP ATÉ O FIM 
+# CASO CHEGUE ATÉ O FIM, DIZER QUE NÃO ACHOU O DDD
