@@ -26,8 +26,8 @@ telefone: .word
 	  .align 2
 	  .space 36     # telefone vai guardar 9 inteiros
 
-stringDigiteTipoSanguineo: .asciiz "\n       Adicione doadores\n       Selecione o seu tipo sanguíneo\n       1) A+     2) A-\n       3) B+     4) B-       5) AB+\n     6) AB-\n       7) O-     8)O+\n"
-tipo_sangue:
+stringDigiteTipoSanguineo: .asciiz "\n       Adicione doadores\n       Selecione o seu tipo sanguíneo\n       1) A+     2) A-\n       3) B+     4) B-\n       5) AB+     6) AB-\n       7) O-     8)O+\n"
+tipo_sanguineo:
 	.word
 	.align 2
 	.space 8      # o vetor vair guardar 4 pessoas (tipos de sangue)
@@ -43,7 +43,7 @@ stringTipoSanguineo:  .asciiz "Tipo Sanguíneo: "
  #    $s1 ---> guarda o endereço de Nome
  #    $s2 ---> indice do vetor de DDD 
  #    $s3 ---> indice do vetor de Telefone
- #    $s4 --->
+ #    $s4 ---> indice do vetor de Tipo Sanguíneo 
  #    $s5 ---> 
  #    $s6 --->
  #    $s7 --->
@@ -73,7 +73,6 @@ li $t8, 2
 beq $a0, $t8, buscaDoadores
 
 j opMenu
-
 
 # ---------- SAIR ----------
 sair:
@@ -146,10 +145,18 @@ jr $ra
 
 # ---------- TIPO SANGUINEO - ADICIONE DOADORES ----------
 adicioneDoadoresTipoSanguineo:
+li $v0, 4
+la $a0, stringDigiteTipoSanguineo
+syscall
+
+li $v0, 5
+syscall                         # le o tipo sanguineo passado pelo usuario
+
+move $t1, $v0                   # passa o valor de v0 para t1
+sw $t1, tipo_sanguineo($s4)     # passa o valor de t1 para o vetor telefone
+addi $s4, $s4, 4                # "anda" com o vetor
 
 jr $ra
-
-
 
 # ---------- BUSCA DOADORES ----------
 buscaDoadores:
