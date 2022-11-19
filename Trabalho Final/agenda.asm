@@ -17,14 +17,14 @@ ddd:
 stringDigiteTelefone: .asciiz "\n       Adicione doadores\n       Digite o seu telefone: "
 telefone: .word
 	  .align 2
-	  .space 36     # telefone vai guardar 9 inteiros
+	  .space 36     # telefone vai guardar 1 grande inteiro
 
 stringDigiteTipoSanguineo: .asciiz "\n       Selecione o seu tipo sanguíneo\n       1) A+     2) A-\n       3) B+     4) B-\n       5) AB+    6) AB-\n       7) O-     8)O+       \nDigite o seu tipo sanguineo: "
 tipo_sanguineo:
 	.word
 	.align 2
 	.space 8      # o vetor vair guardar 4 pessoas (tipos de sangue)
-stringBusqueDoadores:  .asciiz "\n       Busque doadores\n        1) Busque por DDD\n       2) Busque por tipo sanguineo\n       Digite a sua opcao:  " 
+stringBusqueDoadores:  .asciiz "\n       Busque doadores\n       1) Busque por DDD\n       2) Busque por tipo sanguineo\n       Digite a sua opcao:  " 
 encontrouDoadoresDDD: .asciiz " Encontramos um doador compatível com o seu DDD: "
 stringNome: .asciiz "\nNome: "
 stringDDD: .asciiz "\nDDD: "
@@ -47,9 +47,11 @@ vazioDoadoresTipoSanguineo:  .asciiz "\nNao ha doadores disponiveis para o seu t
  #    $s7 --->
  #    $t0 ---> guarda temporariamente informacoes para impressao  
  #    $t1 ---> 
- #    $t2 --->
- #    $t3 ---: guarda o valor que foi colocado em t3
- #    $t4 ---> guarda os valores do vetor DDD para ser comparado
+ #    $t2 ---> tamanho do vetor DDD
+ #    $t3 ---> usado para receber e enviar os valores de DDD nas funcoes de adicao e busca
+ #    $t4 ---> usado para receber e enviar os valores de TELEFONE nas funcoes de adicao e busca
+ #    $t5 ---> tamanho do vetor TIPO SANGUINEO
+ #    $t6 ---> usado para receber e enviar os valores de TIPO SANGUINEO nas funcoes de adicao e busca
  #    $t7 ---> 
  #    $t8 ---> valor da opcao digitada no menu incial
  #    $t9 ---> 
@@ -58,10 +60,12 @@ vazioDoadoresTipoSanguineo:  .asciiz "\nNao ha doadores disponiveis para o seu t
 
 .text
 # Inicializacao
-lui $t0, 0x1001	    # carrega t0 com 0x10010000 (vai ser utilizado para impressao de dados)
+
 move $s2, $zero     # indice do vetor de DDD
 move $s3, $zero     # indice do vetor de TELEFONE
 move $s4, $zero     # indice do vetor de TIPO SANGUINEO
+li $t2, 16          # tamanho do vetor DDD
+li $t5, 16              # tamanho do vetor TIPO SANGUINEO
 
 # Inicializa o menu
 opMenu:
@@ -74,7 +78,7 @@ syscall
 la $a0, ($v0)  # valor de v0 foi passado para a0
 
 li $t8, 3
-beq $a0, $t8, sair  # caso $a0 = 3, 
+beq $a0, $t8, sair
 li $t8, 1
 beq $a0, $t8, adicioneDoadores
 li $t8, 2
@@ -97,7 +101,6 @@ jal adicioneDoadoresDDD
 jal adicioneDoadoresTelefone
 jal adicioneDoadoresTipoSanguineo
 j opMenu
-
 # ---------- NOME - ADICIONE DOADORES ----------
 adicioneDoadoresNome:
 li $v0, 4                      
@@ -109,19 +112,11 @@ la $a0, nome                 # le o nome digitado
 la $a1, 25                   # le o tamanhho do nome
 syscall
 
-la $s1, ($a0)                # coloca em s1 o endereço de nome(que estava em a0)
-
-li $v0, 4                  #opcional
-la $a0, nome
-syscall
-
 jr $ra
 
 # ---------- DDD - ADICIONE DOADORES ----------
 adicioneDoadoresDDD:
 move $t1, $zero     # valor a ser colocado no vetor
-li $t2, 16          # tamanho do array (guarda 4 inteiros)
-
 li $v0, 4
 la $a0, stringDigiteDDD
 syscall
@@ -130,7 +125,8 @@ li $v0, 5
 syscall
 
 move $t3, $v0      # passa o valor de v0 para t1
-sw $t3, ddd($s2)   # passa o valor de t3 para o vetor ddd $s2
+sw $t3, ddd   # passa o valor de t3 para o vetor ddd
+
 jr $ra
 
 # ---------- TELEFONE - ADICIONE DOADORES ----------
@@ -142,9 +138,8 @@ syscall
 li $v0, 5
 syscall
 
-move $t1, $v0           # passa o valor de v0 para t1
-sw $t1, telefone($s3)   # passa o valor de t1 para o vetor telefone
-addi $s3, $s3, 4        # "anda" com o vetor
+move $t4, $v0           # passa o valor de v0 para t1
+sw $t4, telefone   # passa o valor de t1 para o vetor telefone
 
 jr $ra
 
@@ -157,9 +152,8 @@ syscall
 li $v0, 5
 syscall                         # le o tipo sanguineo passado pelo usuario
 
-move $t1, $v0                   # passa o valor de v0 para t1
-sw $t1, tipo_sanguineo($s4)     # passa o valor de t1 para o vetor tipo sanguineo
-addi $s4, $s4, 4                # "anda" com o vetor
+move $t6, $v0                   # passa o valor de v0 para t1
+sw $t6, tipo_sanguineo
 
 jr $ra
 
@@ -172,7 +166,6 @@ li $v0, 5
 syscall                          # le a opcao escolhida no menu
 
 la $a0, ($v0)                    # valor de v0 foi passado para $a0
-
 li $t8, 1
 beq $a0, $t8, busqueDDD             # direciona a parte de busca por DDD
 li $t8, 2
@@ -182,25 +175,27 @@ j opMenu
 
 # ---------- DDD - BUSCA DOADORES ----------
 busqueDDD:
-
 li $v0, 4
 la $a0, stringDigiteDDD
 syscall
-
 li $v0, 5
 syscall                        # le o DDD passado pelo usuario
-
 move $s5, $v0                  # passa o valor de v0 para $s5
-
-lw $t4, ddd($s2)     # chama o vetor que guarda ddd
-jal comparacaoDDD
+j comparacaoDDD
 
 # ------ COMPARACAO DDD - BUSCA DOADORES --------------
 comparacaoDDD:
-beq $s5, $t4 achouDDD
+
+lw $t3, ddd     # chama t3 com um valor armazenado em ddd
+beq $s2, $t2, naoAchouDDD     # se percorrer o loop até o final OK
+beq $s5, $t3 achouDDD         # comparacao entre o valor passado e o valor que ta no vetor
+
 # $s5 = valor que o usuario está buscando no vetor
 # ddd($s2) - vetor que guarda os valores adicionados no vetor
 addi $s2, $s2, 4      # "anda" com o vetor no indice do array
+add $t3, $t3, $t3     # percorre os valores do vetor
+
+# caso tenha percorrido todo o vetor e não encontrado o valor, vai pra t2
 j comparacaoDDD
 
 # --------- ACHOU DDD ---------------
@@ -208,9 +203,10 @@ achouDDD:
 li $v0, 4
 la $a0, encontrouDoadoresDDD
 syscall
-
-lw $t1, 12($t0)     # carrega t1 com a word que ta em 0x10010012
-
+# s1 tem o endereço de nome
+li $v0, 4
+la $a0, stringNome
+syscall
 j opMenu
 # Necessita mostrar as pessoas que tem o mesmo DDD que ela 
 
@@ -219,28 +215,36 @@ naoAchouDDD:
 li $v0, 4
 la $a0, vazioDoadoresDDD
 syscall
-
 j opMenu
 
 # ---------- TIPO SANGUINEO - BUSCA DOADORES ----------
 busqueTipoSanquineo:
+move $s2, $zero
 li $v0, 4
 la $a0, stringDigiteTipoSanguineo
 syscall
 li $v0, 5
-syscall                        # le o tipo sanguineo passado pelo usuario
-
-move $s6, $v0                 # passa o valor de v0 para $s6
+syscall                        # le o DDD passado pelo usuario
+move $s5, $v0                  # passa o valor de v0 para $s5
 j comparacaoTipoSanguineo
 
 # ------ COMPARACAO TIPO SANGUINEO - BUSCA DOADORES --------------
 comparacaoTipoSanguineo:
-beq $s6, $s4, achouTipoSanguineo
+lw $t6, tipo_sanguineo     # chama t3 com um valor armazenado tipo_sanguineo
+beq $s2, $t5, naoAchouTipoSanguineo     # se percorrer o loop até o final OK
+beq $s5, $t6 achouTipoSanguineo         # comparacao entre o valor passado e o valor que ta no vetor
+# $s5 = valor que o usuario está buscando no vetor
 addi $s2, $s2, 4      # "anda" com o vetor no indice do array
-
+add $t6, $t6, $t6     # percorre os valores do vetor
+# caso tenha percorrido todo o vetor e não encontrado o valor, vai pra t2
 j comparacaoTipoSanguineo
-# VER COMO PERCORRER O SEGUNDO LOOP ATÉ O FIM 
-# CASO CHEGUE ATÉ O FIM, DIZER QUE NÃO ACHOU O DDD
-
 
 achouTipoSanguineo:
+li $v0, 4
+la $a0, encontrouDoadoresTipoSanguineo
+syscall
+li $v0, 4
+la $a0, stringNome
+syscall
+
+j opMenu
