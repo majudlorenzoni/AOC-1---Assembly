@@ -1,14 +1,13 @@
 # TRABALHO
 # Bianca Beppler e Maria Júlia Lorenzoni
-
-# Problemas:
-# A posicao da memória não está voltando no inicio para mostrar as pessoas
-# Busca DDD 
+# A agenda é capaz de adicionar pessoas, mostrar quem foi adicionado e fazer algumas buscas
+# Todos os critérios do trabalho foram atendidos
+# Tratamento de erros foi adicionado
 .data
 ddd:
 	.word 
 	.align 2
-	.space 16       # dd vai guardar 4 inteiros	(4 pessoas)
+	.space 16       # ddd vai guardar 4 inteiros	(4 pessoas)
 tipo_sanguineo:
 	.word
 	.align 2
@@ -24,11 +23,10 @@ nome3:	.space 12         # espaço armazenado na memória
 nome4:	.space 12         # espaço armazenado na memória
 menu:	.asciiz "\n       ---------- MENU ----------\n       1) Adicione doadores\n       2) Busque doador\n       3) Mostrar doadores armazenados\n       4) Sair do programa \nDigite sua opcao: "
 saida:	.asciiz "Programa encerrado"
-
 stringDigiteNome:	.asciiz "\n       Adicione doadores\n       Digite o seu nome: "
 stringDigiteDDD:	.asciiz "\n        Selecione DDD\n       1) 51 - Porto Alegre\n       2) 53 - Pelotas\n       3) 54 - Bento Goncalves\n       4) 55 - Rosário do Sul       \nDigite o seu DDD: "
 stringDigiteTelefone:	.asciiz "\n       Adicione doadores\n       Digite o seu telefone: "
-stringDigiteTipoSanguineo:	.asciiz "\n       Selecione o seu tipo sanguíneo\n       1) A+     2) A-\n       3) B+     4) B-\n       5) AB+   6) AB-\n       7) O-     8)O+      \nDigite o seu tipo sanguineo: "
+stringDigiteTipoSanguineo:	.asciiz "\n       Selecione o seu tipo sanguíneo\n       1) A+     2) A-\n       3) B+     4) B-\n       5) AB+    6) AB-\n       7) O-     8)O+      \nDigite o seu tipo sanguineo: "
 stringBusqueDoadores:  		.asciiz "\n       Busque doadores\n       1) Busque por DDD\n       2) Busque por tipo sanguineo\n       Digite a sua opcao:  " 
 
 stringNome:		.asciiz "\nNome: "
@@ -49,7 +47,8 @@ compativelAB1:	 .asciiz"\n Os doadores compativeis com voce são dos tipos: A+, 
 compativelAB2:	 .asciiz"\n Os doadores compativeis com voce são dos tipos: A-, B-, O-, AB-"
 compativelO1:	 .asciiz "\n Os doadores compativeis com voce são dos tipos: O+, O-"
 compativelO2:	 .asciiz "\n Os doadores compativeis com voce são dos tipos: O-"
-agendaCheia:	.asciiz "\n Esta agenda armazena 4 pessoas, ela está lotada! O programa será encerrado!"
+agendaCheia:	.asciiz "\n Esta agenda armazena 4 pessoas, ela está lotada! Agora, apenas as funcoes de exibicao e busca estão disponíveis"
+opcaoInvalida: .asciiz "Opcao invalida! Escolha uma das opcões viáveis!"
  # ______________________ Registradores ___________________________
  #
  #    $v0 ---> chama algumas funções
@@ -67,8 +66,8 @@ agendaCheia:	.asciiz "\n Esta agenda armazena 4 pessoas, ela está lotada! O pro
  #    $t3 ---> usado para receber e enviar os valores de DDD nas funcoes de adicao e busca
  #    $t4 ---> usado para receber e enviar os valores de TELEFONE nas funcoes de adicao e busca
  #    $t5 ---> tamanho do vetor TIPO SANGUINEO
+ #    $t7 --> auxiliar
  #    $t6 ---> usado para receber e enviar os valores de TIPO SANGUINEO nas funcoes de adicao e busca
- #    $t7 ---> 
  #    $t8 ---> valor da opcao digitada no menu incial
  #    $t9 ---> auxiliar de contador pessoas
  # _______________________________________________________________
@@ -87,9 +86,12 @@ li $t9, 0
 li $a3, 0		# contador de quantas pessoas já foram mostradas
 # Inicializa o menu
 opMenu:
-li $v0, 51
+li $v0, 4
 la $a0, menu    # imprime o menu
 syscall
+li $v0, 5       # lê a opcao que foi escolhida no menu
+syscall
+la $a0, ($v0)  # valor de v0 foi passado para a0
 
 li $t8, 4
 beq $a0, $t8, sair
@@ -99,15 +101,14 @@ li $t8, 2
 beq $a0, $t8, buscaDoadores
 li $t8, 3
 beq $a0, $t8, mostraDoadores
-j opMenu
+j opMenu			# garante que vá retornar ao menu caso o usuário digite uma opcao inválida
 
 # ---------- AGENDA LOTADA ----------
 agendaLotada:
 li $v0, 4
 la $a0, agendaCheia
 syscall
-li $v0, 10
-syscall
+j opMenu
 
 # ---------- SAIR ----------
 sair:
@@ -137,52 +138,80 @@ beq $a3, $t8 adicionaNome3
 li $t8, 3
 beq $a3, $t8 adicionaNome4
 adicionaNome1:
-	li $v0, 54                      
+	li $v0, 4                      
 	la $a0, stringDigiteNome	#imprime Digite Nome
-	la $a1, nome1
+	syscall
+
+	li $v0, 8
+	la $a0, nome1		# le o nome digitado
+	la $a1, 10			# le o tamanhho do nome
 	syscall
 	jr $ra
 	
 adicionaNome2:
-	li $v0, 54                      
+	li $v0, 4                      
 	la $a0, stringDigiteNome	#imprime Digite Nome
-	la $a1, nome2
+	syscall
+
+	li $v0, 8
+	la $a0, nome2			# le o nome digitado
+	la $a1, 10			# le o tamanhho do nome
 	syscall
 	jr $ra
 adicionaNome3:
-	li $v0, 54                      
+	li $v0, 4                      
 	la $a0, stringDigiteNome	#imprime Digite Nome
-	la $a1, nome3
+	syscall
+
+	li $v0, 8
+	la $a0, nome3			# le o nome digitado
+	la $a1, 10			# le o tamanhho do nome
 	syscall
 	jr $ra
 adicionaNome4:
-	li $v0, 54                      
+	li $v0, 4                      
 	la $a0, stringDigiteNome	#imprime Digite Nome
-	la $a1, nome4
+	syscall
+
+	li $v0, 8
+	la $a0, nome4			# le o nome digitado
+	la $a1, 10			# le o tamanhho do nome
 	syscall
 	jr $ra
 
 # ---------- DDD - ADICIONE DOADORES ----------
 adicioneDoadoresDDD:
 addi $a3, $a3, 1
-li $v0, 51
+li $v0, 4
 la $a0, stringDigiteDDD
 syscall
-move $t3, $a0
 
+li $v0, 5
+syscall
+move $t3, $v0    	# passa o valor de v0 para t3
+
+li $t7, 4
+bge $t3, $t7 tratamentoDeErrosDDD
 sw $t3, 0($s2)   	# passa o valor de t3 para o vetor ddd
 addiu $s2, $s2, 4	# anda com o vetor ddd
 
-# O DDD não atualiza para 
 jr $ra
-
+# ---------- ADICIONA DDD - TRATAMENTO DE ERROS  ----------
+tratamentoDeErrosDDD:
+li $v0, 4
+la $a0, opcaoInvalida
+syscall
+j adicioneDoadoresDDD
 # ---------- TELEFONE - ADICIONE DOADORES ----------
 adicioneDoadoresTelefone:
 
-li $v0, 51                   
+li $v0, 4                      
 la $a0, stringDigiteTelefone 
 syscall
-move $t4, $a0        # passa o valor de v0 para t4
+
+li $v0, 5
+syscall
+move $t4, $v0           # passa o valor de v0 para t4
 
 sw $t4, 0($s3)    	# passa o valor de t1 para o vetor telefone
 addiu $s3, $s3, 4	# anda com o vetor telefone
@@ -190,17 +219,27 @@ jr $ra
 
 # ---------- TIPO SANGUINEO - ADICIONE DOADORES ----------
 adicioneDoadoresTipoSanguineo:
-
-
-li $v0, 51
+li $v0, 4
 la $a0, stringDigiteTipoSanguineo
-syscall                        # le o tipo sanguineo passado pelo usuario
-move $t6, $a0                  # passa o valor de v0 para t1
+syscall
 
+li $v0, 5
+syscall                         # le o tipo sanguineo passado pelo usuario
+move $t6, $v0                   # passa o valor de v0 para t1
+
+li $t7, 8
+bge $t6, $t7 tratamentoDeErrosTelefone
 sw $t6, 0($s4) 			# passa o valor de t3 para o vetor tipo sanguineo
 addiu $s4, $s4, 4		# anda com o vetor tipo sanguineo
 
 jr $ra
+
+# ---------- ADICIONA TIPO SANGUINEO - TRATAMENTO DE ERROS  ----------
+tratamentoDeErrosTelefone:
+li $v0, 4
+la $a0, opcaoInvalida
+syscall
+j adicioneDoadoresTipoSanguineo
 # ---------- MOSTRA DOADORES ----------
 mostraDoadores:
 # inicializacao pra mostrar doadores
@@ -222,8 +261,11 @@ beq $a3, $t6, mostraDoador4
 
 # ---------- MOSTRA NOMES1 ----------
 mostraDoador1:
-li $v0, 59
+li $v0, 4
 la $a0, stringNome
+syscall
+
+li $v0, 4
 la $a0, nome1
 syscall
 j mostraDados
