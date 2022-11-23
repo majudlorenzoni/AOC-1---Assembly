@@ -18,8 +18,11 @@ telefone:
 	.align 2
 	.space 36     # telefone vai guardar 1 grande inteiro
 	  
-nome: 	.space 25         # espaço armazenado na memória
-menu:	.asciiz "\n       ---------- MENU ----------\n       1) Adicione doadores\n       2) Busque doador\n       3) Mostrar doadores armazenados\n       4) Sair do programa \nDigite sua opcao: \n"
+nome1: 	.space 12         # espaço armazenado na memória
+nome2:	.space 12         # espaço armazenado na memória
+nome3:	.space 12         # espaço armazenado na memória
+nome4:	.space 12         # espaço armazenado na memória
+menu:	.asciiz "\n       ---------- MENU ----------\n       1) Adicione doadores\n       2) Busque doador\n       3) Mostrar doadores armazenados\n       4) Sair do programa \nDigite sua opcao: "
 saida:	.asciiz "Programa encerrado"
 
 stringDigiteNome:	.asciiz "\n       Adicione doadores\n       Digite o seu nome: "
@@ -28,7 +31,7 @@ stringDigiteTelefone:	.asciiz "\n       Adicione doadores\n       Digite o seu t
 stringDigiteTipoSanguineo:	.asciiz "\n       Selecione o seu tipo sanguíneo\n       1) A+     2) A-\n       3) B+     4) B-\n       5) AB+    6) AB-\n       7) O-     8)O+      \nDigite o seu tipo sanguineo: "
 stringBusqueDoadores:  		.asciiz "\n       Busque doadores\n       1) Busque por DDD\n       2) Busque por tipo sanguineo\n       Digite a sua opcao:  " 
 
-stringNome:		.asciiz "Nome: "
+stringNome:		.asciiz "\nNome: "
 stringDDD: 		.asciiz "DDD: "
 stringTelefone:		.asciiz "\nTelefone: "
 stringTipoSanguineo: 	.asciiz"\nTipo Sanguineo: "
@@ -50,17 +53,17 @@ agendaCheia:	.asciiz "\n Esta agenda armazena 4 pessoas, ela está lotada! O pro
  # ______________________ Registradores ___________________________
  #
  #    $v0 ---> chama algumas funções
- #    $s0 ---> recebe o endereço da string nome
- #    $s1 ---> recebe os bytes do endereço string
+ #    $s0 ---> recebe o endereço da string nome1
+ #    $s1 ---> recebe o endereço da string nome2
  #    $s2 ---> indice do vetor de DDD 
  #    $s3 ---> indice do vetor de Telefone
  #    $s4 ---> indice do vetor de Tipo Sanguíneo 
  #    $s5 ---> guarda o valor que de busqueDDD
- #    $s6 ---> 
- #    $s7 ---> contador pra percorrer nome
+ #    $s6 ---> recebe o endereço da string nome3
+ #    $s7 ---> usado em buscaDDD
  #    $t0 ---> guarda temporariamente informacoes para impressao  
  #    $t1 ---> contador 
- #    $t2 ---> tamanho do vetor DDD // tamanho do vetor TIPO SANGUINEO
+ #    $t2 ---> recebe o endereço da string nome4
  #    $t3 ---> usado para receber e enviar os valores de DDD nas funcoes de adicao e busca
  #    $t4 ---> usado para receber e enviar os valores de TELEFONE nas funcoes de adicao e busca
  #    $t5 ---> tamanho do vetor TIPO SANGUINEO
@@ -72,11 +75,16 @@ agendaCheia:	.asciiz "\n Esta agenda armazena 4 pessoas, ela está lotada! O pro
  
 .text
 # Inicializacao
-la $s1, nome		#  indice do vetor NOME
+la $s0, nome1		#  indice do vetor NOME 1
+la $s1, nome2		#  indice do vetor NOME 2
+la $s6, nome3		#  indice do vetor NOME 3 
+la $t2, nome4		#  indice do vetor NOME 4 
 la $s2, ddd		# carrega $s4 com o endereco de memoria de ddd
-li $t1, 4		#  iniciliza contador com 4	( a agenda armazena apenas 4 pessoas)
-li $t2, 16     		#  tamanho do vetor DDD
-li $a3, 0
+la $s3, telefone	#   carrega $s3 com o endereco de memoria de TELEFONE
+la $s4, tipo_sanguineo		#  carrega $s4 com o endereco de memoria de tipo sanguineo
+li $t1, 4		#  iniciliza contador com 0	( a agenda armazena apenas 4 pessoas)
+li $t9, 0
+li $a3, 0		# contador de quantas pessoas já foram mostradas
 # Inicializa o menu
 opMenu:
 li $v0, 4
@@ -124,28 +132,59 @@ jal adicioneDoadoresTipoSanguineo
 j opMenu
 # ---------- NOME - ADICIONE DOADORES ----------
 adicioneDoadoresNome:
+li $t8, 1
+beq $t9, $t8 adicionaNome1
+li $t8, 2
+beq $t9, $t8 adicionaNome2
+li $t8, 3
+beq $t9, $t8 adicionaNome3
+li $t8, 4
+beq $t9, $t8 adicionaNome4
+adicionaNome1:
+	li $v0, 4                      
+	la $a0, stringDigiteNome	#imprime Digite Nome
+	syscall
 
-li $v0, 4                      
-la $a0, stringDigiteNome	#imprime Digite Nome
-syscall
+	li $v0, 8
+	move $a0, $s0
+	la $a0, ($s0)			# le o nome digitado
+	la $a1, 10			# le o tamanhho do nome
+	syscall
+	jr $ra
+	
+adicionaNome2:
+	li $v0, 4                      
+	la $a0, stringDigiteNome	#imprime Digite Nome
+	syscall
 
-li $v0, 8
-move $a0, $s1
-la $a0, ($s1)			# le o nome digitado
-la $a1, 25			# le o tamanhho do nome
-syscall
+	li $v0, 8
+	move $a0, $s1
+	la $a0, ($s1)			# le o nome digitado
+	la $a1, 10			# le o tamanhho do nome
+	syscall
+	jr $ra
+adicionaNome3:
+	li $v0, 4                      
+	la $a0, stringDigiteNome	#imprime Digite Nome
+	syscall
 
-loopPraArmazenarNome:
-lb $s0, 0($s1)			# carrega s0 com um valor amazenado em NOME
-li $s7, 10			# verifica se o nome chegou ao fim (\n = 10)
-beq $s0, $s7 sairNome		# enquanto não chega no final do nome, vai armazendo na m
-addi $s1, $s1, 1		# percorrendo o espaço pra não reescrever o nome
-j loopPraArmazenarNome
+	li $v0, 8
+	move $a0, $s6
+	la $a0, ($s6)			# le o nome digitado
+	la $a1, 10			# le o tamanhho do nome
+	syscall
+	jr $ra
+adicionaNome4:
+	li $v0, 4                      
+	la $a0, stringDigiteNome	#imprime Digite Nome
+	syscall
 
-# Um nome sobrescreve outro
-sairNome:		
-addi $s1, $s1, 1		# coloca um /0 no final da string
-jr $ra
+	li $v0, 8
+	move $a0, $t2
+	la $a0, ($t2)			# le o nome digitado
+	la $a1, 10			# le o tamanhho do nome
+	syscall
+	jr $ra
 
 # ---------- DDD - ADICIONE DOADORES ----------
 adicioneDoadoresDDD:
@@ -166,7 +205,6 @@ jr $ra
 
 # ---------- TELEFONE - ADICIONE DOADORES ----------
 adicioneDoadoresTelefone:
-la $s3, telefone	#   carrega $s3 com o endereco de memoria de TELEFONE
 
 li $v0, 4                      
 la $a0, stringDigiteTelefone 
@@ -182,7 +220,7 @@ jr $ra
 
 # ---------- TIPO SANGUINEO - ADICIONE DOADORES ----------
 adicioneDoadoresTipoSanguineo:
-la $s4, tipo_sanguineo		#  carrega $s4 com o endereco de memoria de tipo sanguineo
+
 
 li $v0, 4
 la $a0, stringDigiteTipoSanguineo
@@ -200,7 +238,10 @@ jr $ra
 mostraDoadores:
 # inicializacao pra mostrar doadores
 li $a3, 0
-la $s1, nome
+la $s0, nome1		#  indice do vetor NOME 1
+la $s1, nome2		#  indice do vetor NOME 2
+la $s6, nome3		#  indice do vetor NOME 3 
+la $t2, nome4		#  indice do vetor NOME 4 
 la $s2, ddd
 la $s3, telefone
 la $s4, tipo_sanguineo
@@ -217,25 +258,50 @@ beq $a3, $t6, mostraDoador3
 li $t6, 4
 beq $a3, $t6, mostraDoador4
 
-mostraDoador1:
-j mostraDados
-mostraDoador2:
-j mostraDados
-mostraDoador3:
-j mostraDados
-mostraDoador4:
-j mostraDados
 # ---------- MOSTRA NOMES1 ----------
-mostraDados:
+mostraDoador1:
 li $v0, 4
 la $a0, stringNome
 syscall
 
 li $v0, 4
-la $a0, nome
+la $a0, nome1
+syscall
+j mostraDados
+
+mostraDoador2:
+li $v0, 4
+la $a0, stringNome
 syscall
 
-# arrumar pra mostrar apenas UM NOME
+li $v0, 4
+la $a0, nome2
+syscall
+j mostraDados
+
+mostraDoador3:
+li $v0, 4
+la $a0, stringNome
+syscall
+
+li $v0, 4
+la $a0, nome3
+syscall
+j mostraDados
+
+mostraDoador4:
+li $v0, 4
+la $a0, stringNome
+syscall
+
+li $v0, 4
+la $a0, nome4
+syscall
+j mostraDados
+
+
+mostraDados:
+
 # ---------- MOSTRA DDD ----------
 li $v0, 4
 la $a0, stringDDD
@@ -287,6 +353,7 @@ j opMenu
 
 # ---------- DDD - BUSCA DOADORES ----------
 busqueDDD:
+li $s7, 0
 la $s2, ddd			#  indice do vetor de DDD
 li $v0, 4
 la $a0, stringDigiteDDD
@@ -300,7 +367,7 @@ j comparacaoDDD
 comparacaoDDD:
 
 lw $t7, 0($s2)			# carrega valor da memoria (ddd[i])
-beq $s7, $t2, naoAchouDDD	# se percorrer o loop até o final OK // $t2 é o tamanho do vetor
+beq $s7, $t9, naoAchouDDD	# se percorrer o loop até o final OK // t9 guarda quantas pessoas estao na agenda
 beq $s5, $t7 achouDDD         	# comparacao entre o valor passado e o valor que ta no vetor
 addi $s2, $s2, 4      		# "anda" com o vetor no indice do array
 addi $s7, $s7, 4      		# "anda" com o vetor no indice do array
