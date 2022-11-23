@@ -3,6 +3,7 @@
 # A agenda é capaz de adicionar pessoas, mostrar quem foi adicionado e fazer algumas buscas
 # Todos os critérios do trabalho foram atendidos
 # Tratamento de erros foi adicionado
+
 .data
 ddd:
 	.word 
@@ -29,7 +30,7 @@ stringDigiteTelefone:	.asciiz "\n       Adicione doadores\n       Digite o seu t
 stringDigiteTipoSanguineo:	.asciiz "\n       Selecione o seu tipo sanguíneo\n       1) A+     2) A-\n       3) B+     4) B-\n       5) AB+    6) AB-\n       7) O-     8)O+      \nDigite o seu tipo sanguineo: "
 stringBusqueDoadores:  		.asciiz "\n       Busque doadores\n       1) Busque por DDD\n       2) Busque por tipo sanguineo\n       Digite a sua opcao:  " 
 
-stringNome:		.asciiz "\nNome: "
+stringNome:		.asciiz "\n\nNome: "
 stringDDD: 		.asciiz "DDD: "
 stringTelefone:		.asciiz "\nTelefone: "
 stringTipoSanguineo: 	.asciiz"\nTipo Sanguineo: "
@@ -49,6 +50,7 @@ compativelO1:	 .asciiz "\n Os doadores compativeis com voce são dos tipos: O+, 
 compativelO2:	 .asciiz "\n Os doadores compativeis com voce são dos tipos: O-"
 agendaCheia:	.asciiz "\n Esta agenda armazena 4 pessoas, ela está lotada! Agora, apenas as funcoes de exibicao e busca estão disponíveis"
 opcaoInvalida: .asciiz "Opcao invalida! Escolha uma das opcões viáveis!"
+agendaVazia: .asciiz "A agenda está vazia! Adicione doadores :) "
  # ______________________ Registradores ___________________________
  #
  #    $v0 ---> chama algumas funções
@@ -101,6 +103,10 @@ li $t8, 2
 beq $a0, $t8, buscaDoadores
 li $t8, 3
 beq $a0, $t8, mostraDoadores
+
+li $v0, 4
+la $a0, opcaoInvalida
+syscall
 j opMenu			# garante que vá retornar ao menu caso o usuário digite uma opcao inválida
 
 # ---------- AGENDA LOTADA ----------
@@ -190,7 +196,7 @@ li $v0, 5
 syscall
 move $t3, $v0    	# passa o valor de v0 para t3
 
-li $t7, 4
+li $t7, 5
 bge $t3, $t7 tratamentoDeErrosDDD
 sw $t3, 0($s2)   	# passa o valor de t3 para o vetor ddd
 addiu $s2, $s2, 4	# anda com o vetor ddd
@@ -227,7 +233,7 @@ li $v0, 5
 syscall                         # le o tipo sanguineo passado pelo usuario
 move $t6, $v0                   # passa o valor de v0 para t1
 
-li $t7, 8
+li $t7, 9
 bge $t6, $t7 tratamentoDeErrosTelefone
 sw $t6, 0($s4) 			# passa o valor de t3 para o vetor tipo sanguineo
 addiu $s4, $s4, 4		# anda com o vetor tipo sanguineo
@@ -248,8 +254,19 @@ la $s2, ddd
 la $s3, telefone
 la $s4, tipo_sanguineo
 
+# verificação se a agenda está vazia
+li $t6, 0
+beq $t9, $t6 mostraDoador0
+j mostraDoadores1	# caso não esteja vazia, vai para a exibicao de doadores
+# --------- AGENDA VAZIA - TRATAMENTO DE ERROS ----------
+mostraDoador0:
+li $v0, 4
+la $a0, agendaVazia
+syscall 
+j opMenu
+
 mostraDoadores1:
-beq $a3, $t9 opMenu
+beq $a3, $t9 opMenu		# confere se mostrou todas as pessoas que foram adicionadas
 li $t6, 0
 beq $a3, $t6, mostraDoador1
 li $t6, 1
@@ -329,7 +346,6 @@ li $v0, 1
 lw $a0, 0($s4)   		# passa o valor de t3 para o vetor ddd
 syscall
 addi $s4, $s4, 4
-
 addi $a3, $a3, 1
 
 j mostraDoadores1
@@ -337,18 +353,24 @@ j mostraDoadores1
 buscaDoadores:
 li $v0, 4
 la $a0, stringBusqueDoadores
-syscall                          # imprime o menu de busca
+syscall                          	# imprime o menu de busca
 li $v0, 5
-syscall                          # le a opcao escolhida no menu
+syscall                         	 # le a opcao escolhida no menu
 
-la $a0, ($v0)                    # valor de v0 foi passado para $a0
+la $a0, ($v0)               		     # valor de v0 foi passado para $a0
 li $t8, 1
-beq $a0, $t8, busqueDDD             # direciona a parte de busca por DDD
+beq $a0, $t8, busqueDDD         	    # direciona a parte de busca por DDD
 li $t8, 2
-beq $a0, $t8, busqueTipoSanquineo   # direciona a parte de busca por Tipo Sanguíneo
+beq $a0, $t8, busqueTipoSanquineo	   # direciona a parte de busca por Tipo Sanguíneo
 
-j opMenu 
+j tratamentoDeErrosBuscaDoadores	# direciona para o tratamento de erros, pois nenhuma das opcao válidas foi escolhida
 
+# ---------- BUSCA DOADORES - TRATAMENTO DE ERROS  ----------
+tratamentoDeErrosBuscaDoadores:
+li $v0, 4
+la $a0, opcaoInvalida
+syscall
+j buscaDoadores
 # ---------- DDD - BUSCA DOADORES ----------
 busqueDDD:
 li $s7, 0
@@ -359,24 +381,30 @@ syscall
 li $v0, 5
 syscall                    	    # le o DDD passado pelo usuario
 move $s5, $v0              	    # passa o valor de v0 para $s5
-j comparacaoDDD
 
+li $t7, 5
+bge $s5, $t7 tratamentoDeErrosBuscaDDD
+
+j comparacaoDDD
+# ---------- BUSCA DDD - TRATAMENTO DE ERROS  ----------
+tratamentoDeErrosBuscaDDD:
+li $v0, 4
+la $a0, opcaoInvalida
+syscall
+j busqueDDD
 # ------ COMPARACAO DDD - BUSCA DOADORES --------------
 comparacaoDDD:
-
 lw $t7, 0($s2)			# carrega valor da memoria (ddd[i])
 beq $s7, $t9, naoAchouDDD	# se percorrer o loop até o final OK // t9 guarda quantas pessoas estao na agenda
 beq $s5, $t7 achouDDD         	# comparacao entre o valor passado e o valor que ta no vetor
 addi $s2, $s2, 4      		# "anda" com o vetor no indice do array
 addi $s7, $s7, 4      		# "anda" com o vetor no indice do array
 j comparacaoDDD
-
 # --------- ACHOU DDD ---------------
 achouDDD:
 li $v0, 4
 la $a0, encontrouDoadoresDDD
 syscall
-
 li $t7, 0
 j opMenu
 
@@ -399,9 +427,20 @@ syscall
 li $v0, 5
 syscall                        # le o DDD passado pelo usuario
 move $s5, $v0                  # passa o valor de v0 para $s5
+
+li $t7, 9
+bge $s5, $t7 tratamentoDeErrosBuscaTipoSanguineo
 li $s7, 16
 j comparacaoTipoSanguineo
 
+# ---------- BUSCA TIPO SANGUINEO - TRATAMENTO DE ERROS  ----------
+tratamentoDeErrosBuscaTipoSanguineo:
+li $v0, 4
+la $a0, opcaoInvalida
+syscall
+j busqueTipoSanquineo
+
+# ---------- COMPARACAO TIPO SANGUINEO --------------------------
 comparacaoTipoSanguineo:
 li $t6, 1
 beq $s5, $t6 compativelUM
@@ -420,8 +459,8 @@ beq $s5, $t6, compativelSETE
 li $t6, 8
 beq $s5, $t6, compativelOITO
 
-j naoAchouTipoSanguineo	# se percorrer o loop até o final OK // $t2 é o tamanho do vetor
-
+j naoAchouTipoSanguineo	
+ # -------- ENCONTROU ALGUM TIPO SANGUINEO --------------------
 compativelUM:
 li $v0, 4
 la $a0, encontrouDoadoresTipoSanguineo
