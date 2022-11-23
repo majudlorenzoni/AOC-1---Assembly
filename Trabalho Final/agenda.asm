@@ -87,7 +87,7 @@ li $t9, 0
 li $a3, 0		# contador de quantas pessoas já foram mostradas
 # Inicializa o menu
 opMenu:
-li $v0, 4
+li $v0, 51
 la $a0, menu    # imprime o menu
 syscall
 li $v0, 5       # lê a opcao que foi escolhida no menu
@@ -124,7 +124,6 @@ syscall
 adicioneDoadores:
 beq $t9, $t1, agendaLotada
 addi $t9, $t9, 1
-
 jal adicioneDoadoresNome
 jal adicioneDoadoresDDD
 jal adicioneDoadoresTelefone
@@ -132,22 +131,21 @@ jal adicioneDoadoresTipoSanguineo
 j opMenu
 # ---------- NOME - ADICIONE DOADORES ----------
 adicioneDoadoresNome:
+li $t8, 0
+beq $a3, $t8 adicionaNome1
 li $t8, 1
-beq $t9, $t8 adicionaNome1
+beq $a3, $t8 adicionaNome2
 li $t8, 2
-beq $t9, $t8 adicionaNome2
+beq $a3, $t8 adicionaNome3
 li $t8, 3
-beq $t9, $t8 adicionaNome3
-li $t8, 4
-beq $t9, $t8 adicionaNome4
+beq $a3, $t8 adicionaNome4
 adicionaNome1:
 	li $v0, 4                      
 	la $a0, stringDigiteNome	#imprime Digite Nome
 	syscall
 
 	li $v0, 8
-	move $a0, $s0
-	la $a0, ($s0)			# le o nome digitado
+	la $a0, nome1		# le o nome digitado
 	la $a1, 10			# le o tamanhho do nome
 	syscall
 	jr $ra
@@ -158,8 +156,7 @@ adicionaNome2:
 	syscall
 
 	li $v0, 8
-	move $a0, $s1
-	la $a0, ($s1)			# le o nome digitado
+	la $a0, nome2			# le o nome digitado
 	la $a1, 10			# le o tamanhho do nome
 	syscall
 	jr $ra
@@ -169,8 +166,7 @@ adicionaNome3:
 	syscall
 
 	li $v0, 8
-	move $a0, $s6
-	la $a0, ($s6)			# le o nome digitado
+	la $a0, nome3			# le o nome digitado
 	la $a1, 10			# le o tamanhho do nome
 	syscall
 	jr $ra
@@ -180,15 +176,14 @@ adicionaNome4:
 	syscall
 
 	li $v0, 8
-	move $a0, $t2
-	la $a0, ($t2)			# le o nome digitado
+	la $a0, nome4			# le o nome digitado
 	la $a1, 10			# le o tamanhho do nome
 	syscall
 	jr $ra
 
 # ---------- DDD - ADICIONE DOADORES ----------
 adicioneDoadoresDDD:
-
+addi $a3, $a3, 1
 li $v0, 4
 la $a0, stringDigiteDDD
 syscall
@@ -238,24 +233,19 @@ jr $ra
 mostraDoadores:
 # inicializacao pra mostrar doadores
 li $a3, 0
-la $s0, nome1		#  indice do vetor NOME 1
-la $s1, nome2		#  indice do vetor NOME 2
-la $s6, nome3		#  indice do vetor NOME 3 
-la $t2, nome4		#  indice do vetor NOME 4 
 la $s2, ddd
 la $s3, telefone
 la $s4, tipo_sanguineo
-li $s7, 1			# verifica se o nome chegou ao fim (novalinha = 1)
 
 mostraDoadores1:
 beq $a3, $t9 opMenu
-li $t6, 1
+li $t6, 0
 beq $a3, $t6, mostraDoador1
-li $t6, 2
+li $t6, 1
 beq $a3, $t6, mostraDoador2
-li $t6, 3
+li $t6, 2
 beq $a3, $t6, mostraDoador3
-li $t6, 4
+li $t6, 3
 beq $a3, $t6, mostraDoador4
 
 # ---------- MOSTRA NOMES1 ----------
@@ -273,7 +263,6 @@ mostraDoador2:
 li $v0, 4
 la $a0, stringNome
 syscall
-
 li $v0, 4
 la $a0, nome2
 syscall
@@ -283,7 +272,6 @@ mostraDoador3:
 li $v0, 4
 la $a0, stringNome
 syscall
-
 li $v0, 4
 la $a0, nome3
 syscall
@@ -293,7 +281,6 @@ mostraDoador4:
 li $v0, 4
 la $a0, stringNome
 syscall
-
 li $v0, 4
 la $a0, nome4
 syscall
