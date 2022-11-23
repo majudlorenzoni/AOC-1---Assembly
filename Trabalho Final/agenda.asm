@@ -1,5 +1,9 @@
 # TRABALHO
 # Bianca Beppler e Maria Júlia Lorenzoni
+
+# Problemas:
+# A posicao da memória não está voltando no inicio para mostrar as pessoas
+# Busca DDD 
 .data
 ddd:
 	.word 
@@ -24,7 +28,7 @@ saida:	.asciiz "Programa encerrado"
 stringDigiteNome:	.asciiz "\n       Adicione doadores\n       Digite o seu nome: "
 stringDigiteDDD:	.asciiz "\n        Selecione DDD\n       1) 51 - Porto Alegre\n       2) 53 - Pelotas\n       3) 54 - Bento Goncalves\n       4) 55 - Rosário do Sul       \nDigite o seu DDD: "
 stringDigiteTelefone:	.asciiz "\n       Adicione doadores\n       Digite o seu telefone: "
-stringDigiteTipoSanguineo:	.asciiz "\n       Selecione o seu tipo sanguíneo\n       1) A+     2) A-\n       3) B+     4) B-\n       5) AB+    6) AB-\n       7) O-     8)O+      \nDigite o seu tipo sanguineo: "
+stringDigiteTipoSanguineo:	.asciiz "\n       Selecione o seu tipo sanguíneo\n       1) A+     2) A-\n       3) B+     4) B-\n       5) AB+   6) AB-\n       7) O-     8)O+      \nDigite o seu tipo sanguineo: "
 stringBusqueDoadores:  		.asciiz "\n       Busque doadores\n       1) Busque por DDD\n       2) Busque por tipo sanguineo\n       Digite a sua opcao:  " 
 
 stringNome:		.asciiz "\nNome: "
@@ -86,9 +90,6 @@ opMenu:
 li $v0, 51
 la $a0, menu    # imprime o menu
 syscall
-li $v0, 5       # lê a opcao que foi escolhida no menu
-syscall
-la $a0, ($v0)  # valor de v0 foi passado para a0
 
 li $t8, 4
 beq $a0, $t8, sair
@@ -136,57 +137,38 @@ beq $a3, $t8 adicionaNome3
 li $t8, 3
 beq $a3, $t8 adicionaNome4
 adicionaNome1:
-	li $v0, 4                      
+	li $v0, 54                      
 	la $a0, stringDigiteNome	#imprime Digite Nome
-	syscall
-
-	li $v0, 8
-	la $a0, nome1		# le o nome digitado
-	la $a1, 10			# le o tamanhho do nome
+	la $a1, nome1
 	syscall
 	jr $ra
 	
 adicionaNome2:
-	li $v0, 4                      
+	li $v0, 54                      
 	la $a0, stringDigiteNome	#imprime Digite Nome
-	syscall
-
-	li $v0, 8
-	la $a0, nome2			# le o nome digitado
-	la $a1, 10			# le o tamanhho do nome
+	la $a1, nome2
 	syscall
 	jr $ra
 adicionaNome3:
-	li $v0, 4                      
+	li $v0, 54                      
 	la $a0, stringDigiteNome	#imprime Digite Nome
-	syscall
-
-	li $v0, 8
-	la $a0, nome3			# le o nome digitado
-	la $a1, 10			# le o tamanhho do nome
+	la $a1, nome3
 	syscall
 	jr $ra
 adicionaNome4:
-	li $v0, 4                      
+	li $v0, 54                      
 	la $a0, stringDigiteNome	#imprime Digite Nome
-	syscall
-
-	li $v0, 8
-	la $a0, nome4			# le o nome digitado
-	la $a1, 10			# le o tamanhho do nome
+	la $a1, nome4
 	syscall
 	jr $ra
 
 # ---------- DDD - ADICIONE DOADORES ----------
 adicioneDoadoresDDD:
 addi $a3, $a3, 1
-li $v0, 4
+li $v0, 51
 la $a0, stringDigiteDDD
 syscall
-
-li $v0, 5
-syscall
-move $t3, $v0    	# passa o valor de v0 para t3
+move $t3, $a0
 
 sw $t3, 0($s2)   	# passa o valor de t3 para o vetor ddd
 addiu $s2, $s2, 4	# anda com o vetor ddd
@@ -197,13 +179,10 @@ jr $ra
 # ---------- TELEFONE - ADICIONE DOADORES ----------
 adicioneDoadoresTelefone:
 
-li $v0, 4                      
+li $v0, 51                   
 la $a0, stringDigiteTelefone 
 syscall
-
-li $v0, 5
-syscall
-move $t4, $v0           # passa o valor de v0 para t4
+move $t4, $a0        # passa o valor de v0 para t4
 
 sw $t4, 0($s3)    	# passa o valor de t1 para o vetor telefone
 addiu $s3, $s3, 4	# anda com o vetor telefone
@@ -213,13 +192,10 @@ jr $ra
 adicioneDoadoresTipoSanguineo:
 
 
-li $v0, 4
+li $v0, 51
 la $a0, stringDigiteTipoSanguineo
-syscall
-
-li $v0, 5
-syscall                         # le o tipo sanguineo passado pelo usuario
-move $t6, $v0                   # passa o valor de v0 para t1
+syscall                        # le o tipo sanguineo passado pelo usuario
+move $t6, $a0                  # passa o valor de v0 para t1
 
 sw $t6, 0($s4) 			# passa o valor de t3 para o vetor tipo sanguineo
 addiu $s4, $s4, 4		# anda com o vetor tipo sanguineo
@@ -246,11 +222,8 @@ beq $a3, $t6, mostraDoador4
 
 # ---------- MOSTRA NOMES1 ----------
 mostraDoador1:
-li $v0, 4
+li $v0, 59
 la $a0, stringNome
-syscall
-
-li $v0, 4
 la $a0, nome1
 syscall
 j mostraDados
