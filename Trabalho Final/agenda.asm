@@ -1,9 +1,5 @@
 # TRABALHO
 # Bianca Beppler e Maria Júlia Lorenzoni
-
-# Problemas:
-# A posicao da memória não está voltando no inicio para mostrar as pessoas
-# Busca DDD 
 .data
 ddd:
 	.word 
