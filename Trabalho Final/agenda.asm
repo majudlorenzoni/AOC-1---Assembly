@@ -2,9 +2,8 @@
 # Bianca Beppler e Maria Júlia Lorenzoni
 
 # Problemas:
-# O vetor do tipo Sanguineo não está funcionando como deveria na funçao BuscarTipoSanguineo
-# O vetores de DDD, TELEFONE e TIPO SANGUINEO não estão atualizando para mostrar as pessoas
-# Para mostrar pessoas, a pessoa não está atualizando 
+# A posicao da memória não está voltando no inicio para mostrar as pessoas
+# Busca DDD 
 .data
 ddd:
 	.word 
@@ -34,9 +33,9 @@ stringDDD: 		.asciiz "DDD: "
 stringTelefone:		.asciiz "\nTelefone: "
 stringTipoSanguineo: 	.asciiz"\nTipo Sanguineo: "
 
-vazioDoadoresDDD: 	.asciiz "\n Nao ha doadores compariveis com o seu DDD "
-encontrouDoadoresDDD:	 .asciiz " Encontramos um doador compatível com o seu DDD: "
-encontrouDoadoresTipoSanguineo:  .asciiz  "\nEncontramos 1 doador compatível com o seu tipo sanguíneo: \n"
+vazioDoadoresDDD: 	.asciiz "\n Nao ha doadores compariveis com o seu DDD!! "
+encontrouDoadoresDDD:	 .asciiz " Encontramos um doador compatível com o seu DDD!!"
+encontrouDoadoresTipoSanguineo:  .asciiz  "\nEncontramos 1 doador compatível com o seu tipo sanguíneo!!! \n Veja os doadores armazenados na opcao 3 do MENU"
 vazioDoadoresTipoSanguineo:  .asciiz "\nNao ha doadores disponiveis para o seu tipo sanguineo"
 
 compativelA1: 	.asciiz "\n Os doadores compativeis com voce são dos tipos: A+, A-, O+, O-"
@@ -198,55 +197,47 @@ sw $t6, 0($s4) 			# passa o valor de t3 para o vetor tipo sanguineo
 addiu $s4, $s4, 4		# anda com o vetor tipo sanguineo
 
 jr $ra
-
+# ---------- MOSTRA DOADORES ----------
 mostraDoadores:
 la $s1, nome
 li $s7, 1			# verifica se o nome chegou ao fim (novalinha = 1)
+
+# ---------- MOSTRA NOMES ----------
 li $v0, 4
 la $a0, stringNome
 syscall
 
-mostrarNome:
-lb $t7, 0($s1)			# carrega s0 com um valor amazenado em NOME
-
-li $v0, 11
-la $a0, ($t7)
+li $v0, 4
+la $a0, nome
 syscall
-
-mostrarNome2:
-lb $s0, 0($s1)			# carrega s0 com um valor amazenado em NOME
-beq $s0, $s7 mostrarDoadores3	# enquanto não chega no final do nome, vai armazendo na m
-addi $s1, $s1, 1		# percorrendo o espaço pra não reescrever o nome
-j mostrarNome
-
-mostrarDoadores3:
+# ---------- MOSTRA DDD ----------
 li $v0, 4
 la $a0, stringDDD
 syscall
 
-lw $t7, 0($s2)			# carrega valor da memoria (ddd[i])
 li $v0, 1
-move $a0, $t7
+lw $a0, 0($s2)
 syscall
 addiu $s2, $s2, 4
 
+# ---------- MOSTRA TELEFONE ----------
 li $v0, 4
 la $a0, stringTelefone
 syscall
-lw $t3, 0($s3)   	# passa o valor de t3 para o vetor ddd
+
 li $v0, 1
-move $a0, $t3
+lw $a0, 0($s3)   	# passa o valor de t3 para o vetor ddd
 syscall
 addiu $s3, $s3, 4
+
+# ---------- MOSTRA TIPO SANGUINEO ----------
 li $v0, 4
 la $a0, stringTipoSanguineo
 syscall
 
-lw $t6, 0($s4) 			# passa o valor de t3 para o vetor tipo sanguineo
 li $v0, 1
-move $a0, $t6
+lw $a0, 0($s4)   		# passa o valor de t3 para o vetor ddd
 syscall
-
 addi $s4, $s4, 4
 
 addi $a3, $a3, 4
