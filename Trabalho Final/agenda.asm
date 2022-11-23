@@ -57,7 +57,7 @@ agendaCheia:	.asciiz "\n Esta agenda armazena 4 pessoas, ela está lotada! O pro
  #    $s3 ---> indice do vetor de Telefone
  #    $s4 ---> indice do vetor de Tipo Sanguíneo 
  #    $s5 ---> guarda o valor que de busqueDDD
- #    $s6 ---> guarda o valor que de busqueTipoSanguineo
+ #    $s6 ---> 
  #    $s7 ---> contador pra percorrer nome
  #    $t0 ---> guarda temporariamente informacoes para impressao  
  #    $t1 ---> contador 
@@ -74,6 +74,8 @@ agendaCheia:	.asciiz "\n Esta agenda armazena 4 pessoas, ela está lotada! O pro
 .text
 # Inicializacao
 la $s1, nome		#  indice do vetor NOME
+la $s2, ddd		# carrega $s4 com o endereco de memoria de ddd
+
 li $t1, 4		#  iniciliza contador com 4	( a agenda armazena apenas 4 pessoas)
 li $t2, 16     		#  tamanho do vetor DDD
 li $a3, 0
@@ -143,13 +145,12 @@ addi $s1, $s1, 1		# percorrendo o espaço pra não reescrever o nome
 j loopPraArmazenarNome
 
 # Um nome sobrescreve outro
-sairNome:
-addi $s0, $s0, 10		# marcacao que a palavra terminou
+sairNome:		
+addi $s1, $s1, 1		# coloca um /0 no final da string
 jr $ra
 
 # ---------- DDD - ADICIONE DOADORES ----------
 adicioneDoadoresDDD:
-la $s2, ddd		# carrega $s4 com o endereco de memoria de ddd
 
 li $v0, 4
 la $a0, stringDigiteDDD
@@ -199,29 +200,24 @@ addiu $s4, $s4, 4		# anda com o vetor tipo sanguineo
 jr $ra
 
 mostraDoadores:
-la $s1, nome			# s0 recebe o endereço da string
-la $s2, ddd			#  indice do vetor de DDD
-la $s3, telefone		#  indice do vetor de TELEFONE
-la $s4, tipo_sanguineo
-
+la $s1, nome
+li $s7, 1			# verifica se o nome chegou ao fim (novalinha = 1)
 li $v0, 4
 la $a0, stringNome
 syscall
 
 mostrarNome:
+lb $t7, 0($s1)			# carrega s0 com um valor amazenado em NOME
 
-lb $s0, 0($s1)			# carrega s0 com um valor amazenado em NOME
-li $v0, 4
-la $a0, ($s1)
+li $v0, 11
+la $a0, ($t7)
 syscall
 
 mostrarNome2:
 lb $s0, 0($s1)			# carrega s0 com um valor amazenado em NOME
-li $s7, 10			# verifica se o nome chegou ao fim (\n = 10)
 beq $s0, $s7 mostrarDoadores3	# enquanto não chega no final do nome, vai armazendo na m
 addi $s1, $s1, 1		# percorrendo o espaço pra não reescrever o nome
-j mostrarNome2
-
+j mostrarNome
 
 mostrarDoadores3:
 li $v0, 4
@@ -424,4 +420,3 @@ la $a0, vazioDoadoresTipoSanguineo
 syscall
 li $t7, 0
 j opMenu
-
