@@ -74,7 +74,6 @@ agendaCheia:	.asciiz "\n Esta agenda armazena 4 pessoas, ela está lotada! O pro
 # Inicializacao
 la $s1, nome		#  indice do vetor NOME
 la $s2, ddd		# carrega $s4 com o endereco de memoria de ddd
-
 li $t1, 4		#  iniciliza contador com 4	( a agenda armazena apenas 4 pessoas)
 li $t2, 16     		#  tamanho do vetor DDD
 li $a3, 0
@@ -199,10 +198,35 @@ addiu $s4, $s4, 4		# anda com o vetor tipo sanguineo
 jr $ra
 # ---------- MOSTRA DOADORES ----------
 mostraDoadores:
+# inicializacao pra mostrar doadores
+li $a3, 0
 la $s1, nome
+la $s2, ddd
+la $s3, telefone
+la $s4, tipo_sanguineo
 li $s7, 1			# verifica se o nome chegou ao fim (novalinha = 1)
 
-# ---------- MOSTRA NOMES ----------
+mostraDoadores1:
+beq $a3, $t9 opMenu
+li $t6, 1
+beq $a3, $t6, mostraDoador1
+li $t6, 2
+beq $a3, $t6, mostraDoador2
+li $t6, 3
+beq $a3, $t6, mostraDoador3
+li $t6, 4
+beq $a3, $t6, mostraDoador4
+
+mostraDoador1:
+j mostraDados
+mostraDoador2:
+j mostraDados
+mostraDoador3:
+j mostraDados
+mostraDoador4:
+j mostraDados
+# ---------- MOSTRA NOMES1 ----------
+mostraDados:
 li $v0, 4
 la $a0, stringNome
 syscall
@@ -210,6 +234,8 @@ syscall
 li $v0, 4
 la $a0, nome
 syscall
+
+# arrumar pra mostrar apenas UM NOME
 # ---------- MOSTRA DDD ----------
 li $v0, 4
 la $a0, stringDDD
@@ -240,10 +266,9 @@ lw $a0, 0($s4)   		# passa o valor de t3 para o vetor ddd
 syscall
 addi $s4, $s4, 4
 
-addi $a3, $a3, 4
+addi $a3, $a3, 1
 
-ble $a3, $t2 mostraDoadores
-j opMenu
+j mostraDoadores1
 # ---------- BUSCA DOADORES ----------
 buscaDoadores:
 li $v0, 4
